@@ -28,4 +28,4 @@ clean:
 	rm -f $(PROG1) $(PROG2) $(OBJ1) $(OBJ2) 
 
 distclean: clean
-	rm -f *~
+	rm -f *
