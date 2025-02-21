@@ -14,7 +14,7 @@ OBJ2 = $(SRC2:.c=.o)
 
 FOLDER = build
 
-all: $(PROG1) $(PROG2) 
+all: $(PROG1) $(PROG2) bundlezip
 
 $(PROG1): $(OBJ1)
 	$(CC) $(CFLAGS) -o ./$(FOLDER)/$@ ./$(FOLDER)/$^
@@ -33,5 +33,5 @@ distclean: clean
 	rm -f ./$(FOLDER)/*
 
 bundlezip:
-	zip ./$(FOLDER)/soo_p1_100522110_100522240_100522257.zip\
+	zip ./$(FOLDER)/ssoo_p1_100522110_100522240_100522257.zip\
  		combine.c crear.c Makefile authors.txt
