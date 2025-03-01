@@ -98,7 +98,7 @@ def testCrear(folder):
 
 	#Ejecutamos el programa del alumno
 	cmd = programPath + " " + folder+testFile
-	pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True, preexec_fn=os.setsid)  
+	pro = subprocess.Popen(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True, preexec_fn=os.setsid)
 	time.sleep(0.5)
 	os.killpg(pro.pid, signal.SIGTERM) 
 

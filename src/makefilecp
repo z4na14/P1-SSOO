@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS =
+CFLAGS = -Wall -Werror -Wextra -O2
 
 PROG1 = crear
 PROG2 = combine
@@ -33,9 +33,5 @@ distclean: clean
 	rm -f ./$(FOLDER)/*
 
 bundlezip:
-	mv Makefile ./build
-	mv makefilecp Makefile
-	zip ./$(FOLDER)/ssoo_p1_100522110_100522240_100522257.zip \
+	zip ./$(FOLDER)/ssoo_p1_100522110_100522240_100522257.zip\
  		combine.c crear.c Makefile authors.txt
-	mv Makefile makefilecp
-	mv ./build/Makefile ./Makefile
