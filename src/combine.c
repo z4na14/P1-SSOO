@@ -21,8 +21,8 @@ int num_alumnos2;
 
 int create_csv(int countM, int countS, int countN, int countA, int countF);
 alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file);
-alumno_t* join_alumnos(alumno_t* alumnoarr1, alumno_t* alumnoarr2, alumno_t* sorted_alumnos);
-int classify_alumnos(alumno_t* alumnos);
+alumno_t* join_alumnos(const alumno_t* alumnoarr1, const alumno_t* alumnoarr2, alumno_t* sorted_alumnos);
+int classify_alumnos(const alumno_t* alumnos);
 int output_new_data(alumno_t* alumnos, const char* filename);
 
 
@@ -264,7 +264,7 @@ int classify_alumnos(const alumno_t* alumnos) {
  * Returns:
  *  - Will always return 0, in case of error the program will be terminated with -1
  */
-int output_new_data(alumno_t* alumnos, char* filename) {
+int output_new_data(alumno_t* alumnos, const char* filename) {
 
     int new_file_fd;
     if ((new_file_fd = creat(filename, 0644)) == -1) {
