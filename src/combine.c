@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <string.h>
 
+#define MAX_ALUMNOS 100
+
 typedef struct{
 	char nombre[50];
 	int nota;
@@ -22,7 +24,7 @@ int output_new_data(alumno* alumnos, char* filename);
 int main(const int argc, const char *argv[]){
 
         // Check if the correct amount of parameters is passed to the program
-	if (argc != 3)
+	if (argc != 4)
 	{
             perror("Wrong number of arguments\n");
 	    return -1;
@@ -57,10 +59,10 @@ int create_csv(const int countM, const int countS, const int countN, const int c
 	int total = countM+countS+countN+countA+countF;
 	char csv_str[70];
 	sprintf(csv_str, "M;%d;%.2f%%\nS;%d;%.2f%%\nN;%d;%.2f%%\nA;%d;%.2f%%\nF;%d;%.2f%%", countM, ((float) countM/total)*100,
-																								countS, ((float) countS/total)*100,
-																								countN, ((float) countN/total)*100,
-																								countA, ((float) countA/total)*100,
-																								countF, ((float) countF/total)*100);
+												    countS, ((float) countS/total)*100,
+												    countN, ((float) countN/total)*100,
+												    countA, ((float) countA/total)*100,
+												    countF, ((float) countF/total)*100);
 
 	int csv_file = creat("estadisticas.csv", 0644);
 
@@ -83,7 +85,12 @@ int create_csv(const int countM, const int countS, const int countN, const int c
  * Returns:
  *  - Array with the students found in the file
  */
-alumno* fetch_alumno(const char* filename) {}
+alumno* fetch_alumno(const char* filename) {
+
+    if (strlen(filename) == 0) {
+        return NULL;
+    }
+}
 
 
 /* Function: join_alumnos
@@ -98,7 +105,7 @@ alumno* fetch_alumno(const char* filename) {}
 alumno* join_alumnos(const alumno* alumnoarr1, const alumno* alumnoarr2) {}
 
 
-/* Function: create_csv
+/* Function: classify_alumnos
  *
  * Arguments:
  *  - const alumno* alumno: Array with the students to classify depending on their marks
@@ -109,7 +116,7 @@ alumno* join_alumnos(const alumno* alumnoarr1, const alumno* alumnoarr2) {}
 int classify_alumnos(const alumno* alumnos) {}
 
 
-/* Function: create_csv
+/* Function: output_new_data
  *
  * Arguments:
  *  - const alumno* alumnos: Array with the students to output in the new file
