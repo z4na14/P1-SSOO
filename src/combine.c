@@ -114,7 +114,38 @@ alumno* join_alumnos(const alumno* alumnoarr1, const alumno* alumnoarr2) {}
  *  - Will always return 0, in case of error the program will be terminated with -1
  */
 int classify_alumnos(const alumno* alumnos) {}
+	int size = sizeof(alumnos)
+	if (alumnos == NULL || size <= 0) {
+		perror("Wrong")
+        	exit(-1); 
+    		}
 
+	int count_M = 0;
+	int count_S = 0;
+	int count_N = 0;
+	int count_A = 0;
+	int count_F = 0;
+
+    	// Counting students in each category
+    	for (int i = 0; i < size; i++) {
+        	if (alumnos[i].mark == 10) {
+            		count_M++;
+        	} 
+		else if (alumnos[i].mark >= 9) {
+            		count_S++;
+        	} 
+		else if (alumnos[i].mark >= 7) {
+            		count_N++;
+        	} 
+		else if (alumnos[i].mark >= 5) {
+            		count_A++;
+        	} 
+		else {
+            		count_failed++;
+        	}
+	    
+    return 0; 
+    }
 
 /* Function: output_new_data
  *
