@@ -14,8 +14,13 @@ typedef struct{
 	int convocatoria;
 } alumno;
 
+// Store in a global variable the amount of students from each file
+// as they will be used in all functions
+int num_alumnos1;
+int num_alumnos2;
+
 int create_csv(int countM, int countS, int countN, int countA, int countF);
-alumno* fetch_alumno(char* filename);
+alumno* fetch_alumno(char* filename, int num_file);
 alumno* join_alumnos(alumno* alumnoarr1, alumno* alumnoarr2);
 int classify_alumnos(alumno* alumnos);
 int output_new_data(alumno* alumnos, char* filename);
@@ -31,7 +36,7 @@ int main(const int argc, const char *argv[]){
 	}
 
         // Fetch stundents and join them in a sorted array
-	alumno* sorted_alumnos = join_alumnos(fetch_alumno(argv[1]), fetch_alumno(argv[2]));
+	alumno* sorted_alumnos = join_alumnos(fetch_alumno(argv[1], 0), fetch_alumno(argv[2], 1));
 
         // Classify students depending on their marks and output CSV
 	classify_alumnos(sorted_alumnos);
@@ -85,10 +90,17 @@ int create_csv(const int countM, const int countS, const int countN, const int c
  * Returns:
  *  - Array with the students found in the file
  */
-alumno* fetch_alumno(const char* filename) {
+alumno* fetch_alumno(const char* filename, int num_file) {
 
+    int count_alumnos = 0;
     if (strlen(filename) == 0) {
         return NULL;
+    }
+
+    switch (num_file) {
+        case 0: num_alumnos1 = count_alumnos; break;
+        case 1: num_alumnos2 = count_alumnos; break;
+        default: perror("Wrong parameter of argument on fetch_alumno\n"); break;
     }
 }
 
@@ -113,40 +125,31 @@ alumno* join_alumnos(const alumno* alumnoarr1, const alumno* alumnoarr2) {}
  * Returns:
  *  - Will always return 0, in case of error the program will be terminated with -1
  */
-int classify_alumnos(const alumno* alumnos) {}
-	int size = sizeof(alumnos)
-	if (alumnos == NULL || size <= 0) {
-		perror("Wrong")
-        	exit(-1); 
-    		}
+int classify_alumnos(const alumno* alumnos) {
+    int count_M = 0, count_S = 0, count_N = 0, count_A = 0, count_F = 0;
 
-	int count_M = 0;
-	int count_S = 0;
-	int count_N = 0;
-	int count_A = 0;
-	int count_F = 0;
-
-    	// Counting students in each category
-    	for (int i = 0; i < size; i++) {
-        	if (alumnos[i].mark == 10) {
-            		count_M++;
-        	} 
-		else if (alumnos[i].mark >= 9) {
-            		count_S++;
-        	} 
-		else if (alumnos[i].mark >= 7) {
-            		count_N++;
-        	} 
-		else if (alumnos[i].mark >= 5) {
-            		count_A++;
-        	} 
-		else {
-            		count_failed++;
-        	}
-	    
-    return 0; 
+    int size = num_alumnos1 + num_alumnos2;
+    if (size == 0 || alumnos == NULL) {
+        create_csv(count_M, count_S, count_N, count_A, count_F);
+        return 0;
     }
 
+    // Counting students in each category
+    for (int i = 0; i < size; i++) {
+        switch (alumnos[i].nota) {
+        case 10: count_M++; break;
+        case 9: count_S++; break;
+        case 8:
+        case 7: count_N++; break;
+        case 6:
+        case 5: count_A++; break;
+        default: count_F++; break;
+        }
+    }
+
+    create_csv(count_M, count_S, count_N, count_A, count_F);
+    return 0;
+}
 /* Function: output_new_data
  *
  * Arguments:
