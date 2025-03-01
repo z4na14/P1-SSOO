@@ -117,17 +117,73 @@ alumno* fetch_alumno(const char* filename, int num_file) {
  *  - Sorted array of the students from the two initial files
  */
 alumno* join_alumnos(const alumno* alumnoarr1, const alumno* alumnoarr2)  {
-  alumno* alumnos[sizeof(alumnoarr1) + sizeof(alumnoarr2)];
-  
-  int i, j;
-  int k = 0;
-  for (i = 0; i < num_alumnos1; i++) {
-    alumnos[k] = alumnoarr1[i];
-    k++;
-  }
-  for (j = 0; j < )
+    alumno alumnos[num_alumnos1 + num_alumnos2];
+    int i, j;
+    int k = 0;
+    /* join both arrays of students into a single one*/
+    for (i = 0; i < num_alumnos1; i++) {
+        alumnos[k] = alumnoarr1[i];
+        k++;
+    }
+    for (j = 0; j < num_alumnos2; j++) {
+        alumnos[k] = alumnoarr2[j];
+        k++;
+    }
+    /*We will use a Merge Sort algorithm for sorting the students by their marks in descending order*/
+    int n = num_alumnos1 + num_alumnos2;
+    merge_sort(alumnos, 0, n - 1);
+    return alumnos;
 }
 
+void merge(alumno arr[], int left, int mid, int right) {
+    int i, j, k;
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+
+    alumno leftArr[n1], rightArr[n2];
+
+    for (i = 0; i < n1; i++) {
+        leftArr[i] = arr[left + i];
+    }
+    for (j = 0; j < n2; j++) {
+        rightArr[j] = arr[mid + 1 + j];
+    }
+    i = 0;
+    j = 0;
+    k = 0;
+    while (i < n1 && j < n2) {
+        if (leftArr[i].nota < rightArr[j].nota) {
+            arr[k] = leftArr[i];
+            i++;
+        }
+        else {
+            arr[k] = rightArr[j];
+            j++;
+        }
+        k++;
+    }
+    while (i < n1) {
+        arr[k] = leftArr[i];
+        i++;
+        k++;
+    }
+    while (j < n2) {
+        arr[k] = rightArr[j];
+        j++;
+        k++;
+    }
+}
+void merge_sort(alumno arr[], int left, int right) {
+    if (left < right) {
+        /* Calculate midpoint */
+        int mid = left + (right - left) / 2;
+        /* sort first and second halves*/
+        merge_sort(arr, left, mid);
+        merge_sort(arr, mid + 1, right);
+
+        merge(arr, left, mid, right);
+    }
+}
 
 /* Function: classify_alumnos
  *
