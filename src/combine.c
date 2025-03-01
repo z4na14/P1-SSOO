@@ -14,9 +14,11 @@ typedef struct{
 
 int create_csv(int countM, int countS, int countN, int countA, int countF);
 alumno* fetch_alumno(char* filename);
-alumno* join_alumnos(alumno* alumnoarr1, alumno* alumnoarr2);
+alumno* join_alumnos(alumno* alumnoarr1, alumno* alumnoarr2, int argc1, int argc2);
 int classify_alumnos(alumno* alumnos);
 int output_new_data(alumno* alumnos, char* filename);
+void merge(alumno arr[], int left, int mid, int right);
+void merge_sort(alumno arr[], int left, int right);
 
 
 int main(const int argc, const char *argv[]){
@@ -95,17 +97,19 @@ alumno* fetch_alumno(const char* filename) {}
  * Returns:
  *  - Sorted array of the students from the two initial files
  */
-alumno* join_alumnos(const alumno* alumnoarr1, const alumno* alumnoarr2) {}
+alumno* join_alumnos(const alumno* alumnoarr1, const alumno* alumnoarr2)  {
+  alumno* alumnos[sizeof(alumnoarr1) + sizeof(alumnoarr2)];
+  
+  int i, j;
+  int k = 0;
+  for (i = 0; i < num_alumnos1; i++) {
+    alumnos[k] = alumnoarr1[i];
+    k++;
+  }
+  for (j = 0; j < )
+}
 
 
-/* Function: create_csv
- *
- * Arguments:
- *  - const alumno* alumno: Array with the students to classify depending on their marks
- *
- * Returns:
- *  - Will always return 0, in case of error the program will be terminated with -1
- */
 int classify_alumnos(const alumno* alumnos) {}
 
 
