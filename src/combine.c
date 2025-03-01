@@ -12,7 +12,7 @@ typedef struct{
 	char nombre[50];
 	int nota;
 	int convocatoria;
-} alumno;
+} alumno_t;
 
 // Store in a global variable the amount of students from each file
 // as they will be used in all functions
@@ -20,33 +20,43 @@ int num_alumnos1;
 int num_alumnos2;
 
 int create_csv(int countM, int countS, int countN, int countA, int countF);
-alumno* fetch_alumno(char* filename, int num_file);
-alumno* join_alumnos(alumno* alumnoarr1, alumno* alumnoarr2);
-int classify_alumnos(alumno* alumnos);
-int output_new_data(alumno* alumnos, char* filename);
-void merge(alumno arr[], int left, int mid, int right);
-void merge_sort(alumno arr[], int left, int right);
+alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file);
+alumno_t* join_alumnos(alumno_t* alumnoarr1, alumno_t* alumnoarr2, alumno_t* sorted_alumnos);
+int classify_alumnos(alumno_t* alumnos);
+int output_new_data(alumno_t* alumnos, const char* filename);
 
 
 int main(const int argc, const char *argv[]){
 
-        // Check if the correct amount of parameters is passed to the program
-	if (argc != 4)
-	{
-            perror("Wrong number of arguments\n");
-	    return -1;
-	}
+    // Check if the correct amount of parameters is passed to the program
+    if (argc != 4)
+    {
+        perror("Wrong number of arguments");
+	return -1;
+    }
 
-        // Fetch stundents and join them in a sorted array
-	alumno* sorted_alumnos = join_alumnos(fetch_alumno(argv[1], 0), fetch_alumno(argv[2], 1));
+    // Fetch students from files
+    alumno_t alumnoarr1[MAX_ALUMNOS];
+    alumno_t alumnoarr2[MAX_ALUMNOS];
+    fetch_alumno(argv[1], alumnoarr1, 0);
+    fetch_alumno(argv[2], alumnoarr2, 1);
 
-        // Classify students depending on their marks and output CSV
-	classify_alumnos(sorted_alumnos);
+    if (num_alumnos1 + num_alumnos2 > MAX_ALUMNOS) {
+        perror("Students limit surpassed");
+        return -1;
+    }
 
-        // Write the newly created array with sorted data into the output file
-	output_new_data(sorted_alumnos, argv[3]);
+    // And join them in a sorted array
+    alumno_t sorted_alumnos[num_alumnos1 + num_alumnos2];
+    join_alumnos(alumnoarr1, alumnoarr2, sorted_alumnos);
 
-	return 0;
+    // Classify students depending on their marks and output CSV
+    classify_alumnos(sorted_alumnos);
+
+    // Write the newly created array with sorted data into the output file
+    output_new_data(sorted_alumnos, argv[3]);
+
+    return 0;
 }
 
 /* Function: create_csv
@@ -61,26 +71,28 @@ int main(const int argc, const char *argv[]){
  * Returns:
  *  - -1 in case of error, 0 otherwise
  */
-int create_csv(const int countM, const int countS, const int countN, const int countA, const int countF)
-{
-	int total = countM+countS+countN+countA+countF;
-	char csv_str[70];
-	sprintf(csv_str, "M;%d;%.2f%%\nS;%d;%.2f%%\nN;%d;%.2f%%\nA;%d;%.2f%%\nF;%d;%.2f%%", countM, ((float) countM/total)*100,
-												    countS, ((float) countS/total)*100,
-												    countN, ((float) countN/total)*100,
-												    countA, ((float) countA/total)*100,
-												    countF, ((float) countF/total)*100);
+int create_csv(const int countM, const int countS, const int countN, const int countA, const int countF) {
 
-	int csv_file = creat("estadisticas.csv", 0644);
+    int total = countM+countS+countN+countA+countF;
+    char csv_str[70];
+    sprintf(csv_str,
+        "M;%d;%.2f%%\nS;%d;%.2f%%\nN;%d;%.2f%%\nA;%d;%.2f%%\nF;%d;%.2f%%",
+                countM, ((float) countM/total)*100,
+	        countS, ((float) countS/total)*100,
+	        countN, ((float) countN/total)*100,
+	        countA, ((float) countA/total)*100,
+	        countF, ((float) countF/total)*100);
 
-	if (write(csv_file, csv_str, strlen(csv_str)) == -1)
-	{
-		perror("Error writing to file");
-		exit(-1);
-	}
-	close(csv_file);
+    int csv_file = creat("estadisticas.csv", 0644);
 
-	return 0;
+    if (write(csv_file, csv_str, strlen(csv_str)) == -1)
+    {
+	    perror("Error writing to CSV");
+	    exit(-1);
+    }
+    close(csv_file);
+
+    return 0;
 }
 
 
@@ -92,55 +104,74 @@ int create_csv(const int countM, const int countS, const int countN, const int c
  * Returns:
  *  - Array with the students found in the file
  */
-alumno* fetch_alumno(const char* filename, int num_file) {
+alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file) {
+
+    if (strlen(filename) == 0) {return NULL;}
+
+    int file_fd;
+    if ((file_fd = open(filename, O_RDONLY)) == -1) {
+        perror("Error opening file");
+        exit(-1);
+    }
 
     int count_alumnos = 0;
-    if (strlen(filename) == 0) {
-        return NULL;
+    while (count_alumnos < MAX_ALUMNOS &&
+            read(file_fd, &alumnos[count_alumnos], sizeof(alumno_t)) != -1) {
+        count_alumnos++;
     }
+
+    if (count_alumnos == 0) {return NULL;}
 
     switch (num_file) {
         case 0: num_alumnos1 = count_alumnos; break;
         case 1: num_alumnos2 = count_alumnos; break;
-        default: perror("Wrong parameter of argument on fetch_alumno\n"); break;
+        default: perror("Wrong parameter of argument on fetch_alumno"); break;
     }
+
+    return alumnos;
 }
 
 
+// Merge sort functions needed
+void merge(alumno_t arr[], int left, int mid, int right);
+void merge_sort(alumno_t arr[], int left, int right);
 /* Function: join_alumnos
  *
  * Arguments:
- *  - const alumno* alumnoarr1: First array of stundents
- *  - const alumno* alumnoarr2: Second array of students
+ *  - const alumno_t* alumnoarr1: First array of students
+ *  - const alumno_t* alumnoarr2: Second array of students
  *
  * Returns:
  *  - Sorted array of the students from the two initial files
  */
-alumno* join_alumnos(const alumno* alumnoarr1, const alumno* alumnoarr2)  {
-    alumno alumnos[num_alumnos1 + num_alumnos2];
+alumno_t* join_alumnos(const alumno_t* alumnoarr1, const alumno_t* alumnoarr2, alumno_t* sorted_alumnos)  {
+
     int i, j;
     int k = 0;
-    /* join both arrays of students into a single one*/
+
+    // Join both arrays of students into a single one
     for (i = 0; i < num_alumnos1; i++) {
-        alumnos[k] = alumnoarr1[i];
+        sorted_alumnos[k] = alumnoarr1[i];
         k++;
     }
     for (j = 0; j < num_alumnos2; j++) {
-        alumnos[k] = alumnoarr2[j];
+        sorted_alumnos[k] = alumnoarr2[j];
         k++;
     }
-    /*We will use a Merge Sort algorithm for sorting the students by their marks in descending order*/
+
+    // We will use a Merge Sort algorithm for sorting the students by their marks in descending order
     int n = num_alumnos1 + num_alumnos2;
-    merge_sort(alumnos, 0, n - 1);
-    return alumnos;
+    merge_sort(sorted_alumnos, 0, n - 1);
+    return sorted_alumnos;
 }
 
-void merge(alumno arr[], int left, int mid, int right) {
+void merge(alumno_t arr[], int left, int mid, int right) {
+
     int i, j, k;
     int n1 = mid - left + 1;
     int n2 = right - mid;
 
-    alumno leftArr[n1], rightArr[n2];
+    alumno_t leftArr[n1], rightArr[n2];
 
     for (i = 0; i < n1; i++) {
         leftArr[i] = arr[left + i];
@@ -173,11 +204,14 @@ void merge(alumno arr[], int left, int mid, int right) {
         k++;
     }
 }
-void merge_sort(alumno arr[], int left, int right) {
+
+void merge_sort(alumno_t arr[], int left, int right) {
+
     if (left < right) {
-        /* Calculate midpoint */
+        // Calculate midpoint
         int mid = left + (right - left) / 2;
-        /* sort first and second halves*/
+
+        // Sort first and second halves
         merge_sort(arr, left, mid);
         merge_sort(arr, mid + 1, right);
 
@@ -185,15 +219,17 @@ void merge_sort(alumno arr[], int left, int right) {
     }
 }
 
+
 /* Function: classify_alumnos
  *
  * Arguments:
- *  - const alumno* alumno: Array with the students to classify depending on their marks
+ *  - const alumno_t* alumno_t: Array with the students to classify depending on their marks
  *
  * Returns:
  *  - Will always return 0, in case of error the program will be terminated with -1
  */
-int classify_alumnos(const alumno* alumnos) {
+int classify_alumnos(const alumno_t* alumnos) {
+
     int count_M = 0, count_S = 0, count_N = 0, count_A = 0, count_F = 0;
 
     int size = num_alumnos1 + num_alumnos2;
@@ -218,12 +254,32 @@ int classify_alumnos(const alumno* alumnos) {
     create_csv(count_M, count_S, count_N, count_A, count_F);
     return 0;
 }
+
+
 /* Function: output_new_data
  *
  * Arguments:
- *  - const alumno* alumnos: Array with the students to output in the new file
+ *  - const alumno_t* alumnos: Array with the students to output in the new file
  *
  * Returns:
  *  - Will always return 0, in case of error the program will be terminated with -1
  */
-int output_new_data(const alumno* alumnos) {}
+int output_new_data(alumno_t* alumnos, char* filename) {
+
+    int new_file_fd;
+    if ((new_file_fd = creat(filename, 0644)) == -1) {
+        perror("Error creating new file");
+        exit(-1);
+    }
+
+    int total_number_alumnos = num_alumnos1 + num_alumnos2;
+    for (int i = 0; i < total_number_alumnos; i++) {
+        if (write(new_file_fd, &alumnos[i], sizeof(alumno_t)) == -1) {
+            perror("Error writing to file");
+            exit(-1);
+        }
+    }
+
+    close(new_file_fd);
+    return 0;
+}
