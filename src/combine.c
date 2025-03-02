@@ -21,9 +21,9 @@ int num_alumnos2;
 
 int create_csv(int countM, int countS, int countN, int countA, int countF);
 alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file);
-alumno_t* join_alumnos(const alumno_t* alumnoarr1, const alumno_t* alumnoarr2, alumno_t* sorted_alumnos);
-int classify_alumnos(const alumno_t* alumnos);
-int output_new_data(alumno_t* alumnos, const char* filename);
+alumno_t* join_alumnos(const alumno_t alumnoarr1[], const alumno_t alumnoarr2[], alumno_t sorted_alumnos[]);
+int classify_alumnos(const alumno_t alumnos[]);
+int output_new_data(alumno_t alumnos[], const char* filename);
 
 
 int main(const int argc, const char *argv[]){
@@ -43,7 +43,6 @@ int main(const int argc, const char *argv[]){
 
     if (num_alumnos1 + num_alumnos2 > MAX_ALUMNOS) {
         perror("Students limit surpassed");
-        printf("1: %d, 2: %d\n", num_alumnos1, num_alumnos2);
         return -1;
     }
 
@@ -77,12 +76,13 @@ int create_csv(const int countM, const int countS, const int countN, const int c
     int total = countM+countS+countN+countA+countF;
     char csv_str[70];
     sprintf(csv_str,
-        "M;%d;%.2f%%\nS;%d;%.2f%%\nN;%d;%.2f%%\nA;%d;%.2f%%\nF;%d;%.2f%%",
-                countM, ((float) countM/total)*100,
-	        countS, ((float) countS/total)*100,
-	        countN, ((float) countN/total)*100,
-	        countA, ((float) countA/total)*100,
-	        countF, ((float) countF/total)*100);
+        "M;%d;%.2f%%\nS;%d;%.2f%%\nN;%d;%.2f%%\nA;%d;%.2f%%\nF;%d;%.2f%%\n",
+                countM, (((float) countM) / ((float) total))*100,
+	        countS, (((float) countS) / ((float) total))*100,
+	        countN, (((float) countN) / ((float) total))*100,
+	        countA, (((float) countA) / ((float) total))*100,
+	        countF, (((float) countF) / ((float) total))*100);
+
 
     int csv_file = creat("estadisticas.csv", 0644);
 
@@ -136,10 +136,7 @@ alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file) {
     return alumnos;
 }
 
-
-// Merge sort functions needed
-void merge(alumno_t arr[], int left, int mid, int right);
-void merge_sort(alumno_t arr[], int left, int right);
+// No more merge sort, we are going bubble
 /* Function: join_alumnos
  *
  * Arguments:
@@ -149,79 +146,39 @@ void merge_sort(alumno_t arr[], int left, int right);
  * Returns:
  *  - Sorted array of the students from the two initial files
  */
-alumno_t* join_alumnos(const alumno_t* alumnoarr1, const alumno_t* alumnoarr2, alumno_t* sorted_alumnos)  {
-
-    int i, j;
-    int k = 0;
+alumno_t* join_alumnos(const alumno_t alumnoarr1[], const alumno_t alumnoarr2[], alumno_t sorted_alumnos[])  {
 
     // Join both arrays of students into a single one
-    for (i = 0; i < num_alumnos1; i++) {
-        sorted_alumnos[k] = alumnoarr1[i];
-        k++;
-    }
-    for (j = 0; j < num_alumnos2; j++) {
-        sorted_alumnos[k] = alumnoarr2[j];
-        k++;
+    for (int i = 0; i < num_alumnos1; i++) {
+        sorted_alumnos[i] = alumnoarr1[i];
     }
 
-    // We will use a Merge Sort algorithm for sorting the students by their marks in descending order
-    int n = num_alumnos1 + num_alumnos2;
-    merge_sort(sorted_alumnos, 0, n - 1);
+    for (int i = num_alumnos1; i < num_alumnos1 + num_alumnos2; i++) {
+        sorted_alumnos[i] = alumnoarr2[i - num_alumnos1];
+    }
+
+    int total_num_alumnos = num_alumnos1 + num_alumnos2;
+
+    u_int8_t swapped;
+    for (int i = 0; i < total_num_alumnos; i++) {
+        swapped = 0;
+        for (int j = 0; j < total_num_alumnos - i - 1; j++) {
+            if (sorted_alumnos[j].nota > sorted_alumnos[j+1].nota) {
+                // Interchange variables
+                alumno_t temp_alumno = sorted_alumnos[j];
+                sorted_alumnos[j] = sorted_alumnos[j + 1];
+                sorted_alumnos[j + 1] = temp_alumno;
+
+                swapped = 1;
+            }
+        }
+
+        // If no two elements were swapped by inner loop,
+        // then break
+        if (swapped == 0){break;}
+    }
+
     return sorted_alumnos;
-}
-
-void merge(alumno_t arr[], int left, int mid, int right) {
-
-    int i, j, k;
-    int n1 = mid - left + 1;
-    int n2 = right - mid;
-
-    alumno_t leftArr[n1], rightArr[n2];
-
-    for (i = 0; i < n1; i++) {
-        leftArr[i] = arr[left + i];
-    }
-    for (j = 0; j < n2; j++) {
-        rightArr[j] = arr[mid + 1 + j];
-    }
-    i = 0;
-    j = 0;
-    k = 0;
-    while (i < n1 && j < n2) {
-        if (leftArr[i].nota < rightArr[j].nota) {
-            arr[k] = leftArr[i];
-            i++;
-        }
-        else {
-            arr[k] = rightArr[j];
-            j++;
-        }
-        k++;
-    }
-    while (i < n1) {
-        arr[k] = leftArr[i];
-        i++;
-        k++;
-    }
-    while (j < n2) {
-        arr[k] = rightArr[j];
-        j++;
-        k++;
-    }
-}
-
-void merge_sort(alumno_t arr[], int left, int right) {
-
-    if (left < right) {
-        // Calculate midpoint
-        int mid = left + (right - left) / 2;
-
-        // Sort first and second halves
-        merge_sort(arr, left, mid);
-        merge_sort(arr, mid + 1, right);
-
-        merge(arr, left, mid, right);
-    }
 }
 
 
@@ -233,7 +190,7 @@ void merge_sort(alumno_t arr[], int left, int right) {
  * Returns:
  *  - Will always return 0, in case of error the program will be terminated with -1
  */
-int classify_alumnos(const alumno_t* alumnos) {
+int classify_alumnos(const alumno_t alumnos[]) {
 
     int count_M = 0, count_S = 0, count_N = 0, count_A = 0, count_F = 0;
 
@@ -246,13 +203,13 @@ int classify_alumnos(const alumno_t* alumnos) {
     // Counting students in each category
     for (int i = 0; i < size; i++) {
         switch (alumnos[i].nota) {
-        case 10: count_M++; break;
-        case 9: count_S++; break;
-        case 8:
-        case 7: count_N++; break;
-        case 6:
-        case 5: count_A++; break;
-        default: count_F++; break;
+            case 10: count_M++; break;
+            case 9: count_S++; break;
+            case 8:
+            case 7: count_N++; break;
+            case 6:
+            case 5: count_A++; break;
+            default: count_F++; break;
         }
     }
 
@@ -269,7 +226,7 @@ int classify_alumnos(const alumno_t* alumnos) {
  * Returns:
  *  - Will always return 0, in case of error the program will be terminated with -1
  */
-int output_new_data(alumno_t* alumnos, const char* filename) {
+int output_new_data(alumno_t alumnos[], const char* filename) {
 
     int new_file_fd;
     if ((new_file_fd = creat(filename, 0644)) == -1) {

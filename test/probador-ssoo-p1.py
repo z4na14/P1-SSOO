@@ -183,7 +183,7 @@ if(__name__=="__main__"):
 	
 		#Comprobamos el formato del nombre del fichero
 		tokens=inputFile.replace(".zip","")
-		tokens=tokens.split("-")
+		tokens=tokens.split("_")
 		if len(tokens) != 3 and len(tokens) != 4 and len(tokens) != 5:
 			print("Formato del nombre del archivo incorrecto: ssoo_p1_AAAAA_BBBBB_CCCCC.zip")
 			sys.exit(0)
@@ -209,8 +209,8 @@ if(__name__=="__main__"):
 		#tempFolder="./"
 		tempFolder= os.getcwd() + "/probador/"
 		if os.path.exists(tempFolder):
-                	subprocess.call(["chmod","644",tempFolder+"test2.txt"])
-	                subprocess.call(["rm", "-r",tempFolder])
+			subprocess.call(["chmod","644",tempFolder+"test2.txt"])
+			subprocess.call(["rm", "-r",tempFolder])
 
 		os.mkdir(tempFolder)
 
