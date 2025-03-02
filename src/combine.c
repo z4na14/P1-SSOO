@@ -43,6 +43,7 @@ int main(const int argc, const char *argv[]){
 
     if (num_alumnos1 + num_alumnos2 > MAX_ALUMNOS) {
         perror("Students limit surpassed");
+        printf("1: %d, 2: %d\n", num_alumnos1, num_alumnos2);
         return -1;
     }
 
@@ -115,8 +116,12 @@ alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file) {
     }
 
     int count_alumnos = 0;
-    while (count_alumnos < MAX_ALUMNOS &&
-            read(file_fd, &alumnos[count_alumnos], sizeof(alumno_t)) != -1) {
+    while (read(file_fd, &alumnos[count_alumnos], sizeof(alumno_t)) != -1 &&
+            count_alumnos < MAX_ALUMNOS) {
+
+        if (strcmp(alumnos[count_alumnos].nombre, "") == 0) {
+            break;
+        }
         count_alumnos++;
     }
 
