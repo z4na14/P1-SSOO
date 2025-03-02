@@ -46,7 +46,7 @@ int main(const int argc, const char *argv[]){
         return -1;
     }
 
-    // And join them in a sorted array
+    // Join the two student arrays into a sorted one depending on the notes
     alumno_t sorted_alumnos[num_alumnos1 + num_alumnos2];
     join_alumnos(alumnoarr1, alumnoarr2, sorted_alumnos);
 
@@ -59,12 +59,15 @@ int main(const int argc, const char *argv[]){
     return 0;
 }
 
+
 /* Function: create_csv
+ *
+ * Creates the CSV file using the data from the marks from the arguments.
  *
  * Arguments:
  *  - const int countM: Number of students with a score of 10
  *  - const int countS: Number of students with a score of 9
- *  - const int coountN: Number of students with a score of 8 or 7
+ *  - const int countN: Number of students with a score of 8 or 7
  *  - const int countA: Number of students with a score of 6 or 5
  *  - const int countF: Number of students with a score lower than 5
  *
@@ -74,6 +77,8 @@ int main(const int argc, const char *argv[]){
 int create_csv(const int countM, const int countS, const int countN, const int countA, const int countF) {
 
     int total = countM+countS+countN+countA+countF;
+
+    // Store into an array the string to be outputed to the CSV file
     char csv_str[70];
     sprintf(csv_str,
         "M;%d;%.2f%%\nS;%d;%.2f%%\nN;%d;%.2f%%\nA;%d;%.2f%%\nF;%d;%.2f%%\n",
@@ -84,8 +89,8 @@ int create_csv(const int countM, const int countS, const int countN, const int c
 	        countF, (((float) countF) / ((float) total))*100);
 
 
+    // Create the CSV file and store the information
     int csv_file = creat("estadisticas.csv", 0644);
-
     if (write(csv_file, csv_str, strlen(csv_str)) == -1)
     {
 	    perror("Error writing to CSV");
@@ -99,22 +104,30 @@ int create_csv(const int countM, const int countS, const int countN, const int c
 
 /* Function: fetch_alumno
  *
+ * Fetches the data from the file passed as argument and stores it in the array,
+ * while also updating the corresponding global variable.
+ *
  * Arguments:
  *  - const char* filename: Name of the file where the data is stored
+ *  - alumno_t alumnos[]: Array where to store the data found
+ *  - int num_file: Respective global variable to store the total count
  *
  * Returns:
  *  - Array with the students found in the file
  */
 alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file) {
 
+    // If no filename provided, return nothing
     if (strlen(filename) == 0) {return NULL;}
 
+    // Open file on read only mode
     int file_fd;
-    if ((file_fd = open(filename, O_RDONLY)) == -1) {
+    if ((file_fd = open(filename, O_RDONLY)) < 0) {
         perror("Error opening file");
         exit(-1);
     }
 
+    // Traverse the whole file, storing in the array the data from the students
     int count_alumnos = 0;
     while (read(file_fd, &alumnos[count_alumnos], sizeof(alumno_t)) != -1 &&
             count_alumnos < MAX_ALUMNOS) {
@@ -122,11 +135,23 @@ alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file) {
         if (strcmp(alumnos[count_alumnos].nombre, "") == 0) {
             break;
         }
+
+        // Check if the input is correctly formatted
+        if (strlen(alumnos[count_alumnos].nombre) <= 0 || strlen(alumnos[count_alumnos].nombre) > 50 ||
+            alumnos[count_alumnos].nota < 0 || alumnos[count_alumnos].nota > 10 ||
+            alumnos[count_alumnos].convocatoria < 0) {
+
+            perror("Invalid format inside input file");
+            exit(-1);
+        }
+
         count_alumnos++;
     }
 
+    // If no students found, return nothing
     if (count_alumnos == 0) {return NULL;}
 
+    // Depending on which file we are searching, update the corresponding global variable
     switch (num_file) {
         case 0: num_alumnos1 = count_alumnos; break;
         case 1: num_alumnos2 = count_alumnos; break;
@@ -136,12 +161,15 @@ alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file) {
     return alumnos;
 }
 
-// No more merge sort, we are going bubble
+
 /* Function: join_alumnos
+ *
+ * Joins the two arrays of students and sorts them depending on their notes.
  *
  * Arguments:
  *  - const alumno_t* alumnoarr1: First array of students
  *  - const alumno_t* alumnoarr2: Second array of students
+ *  - alumno_t sorted_alumnos[]: Where to store the computed sorted array
  *
  * Returns:
  *  - Sorted array of the students from the two initial files
@@ -149,19 +177,22 @@ alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file) {
 alumno_t* join_alumnos(const alumno_t alumnoarr1[], const alumno_t alumnoarr2[], alumno_t sorted_alumnos[])  {
 
     // Join both arrays of students into a single one
-    for (int i = 0; i < num_alumnos1; i++) {
-        sorted_alumnos[i] = alumnoarr1[i];
+    if (alumnoarr1 != NULL) {
+        for (int i = 0; i < num_alumnos1; i++) {
+            sorted_alumnos[i] = alumnoarr1[i];
+        }
+    }
+    if (alumnoarr2 != NULL) {
+        for (int i = num_alumnos1; i < num_alumnos1 + num_alumnos2; i++) {
+            sorted_alumnos[i] = alumnoarr2[i - num_alumnos1];
+        }
     }
 
-    for (int i = num_alumnos1; i < num_alumnos1 + num_alumnos2; i++) {
-        sorted_alumnos[i] = alumnoarr2[i - num_alumnos1];
-    }
 
     int total_num_alumnos = num_alumnos1 + num_alumnos2;
-
-    u_int8_t swapped;
+    // Bubble sort algorithm to sort students depending on their notes
     for (int i = 0; i < total_num_alumnos; i++) {
-        swapped = 0;
+        u_int8_t swapped = 0;
         for (int j = 0; j < total_num_alumnos - i - 1; j++) {
             if (sorted_alumnos[j].nota > sorted_alumnos[j+1].nota) {
                 // Interchange variables
@@ -173,8 +204,7 @@ alumno_t* join_alumnos(const alumno_t alumnoarr1[], const alumno_t alumnoarr2[],
             }
         }
 
-        // If no two elements were swapped by inner loop,
-        // then break
+        // If no two elements were swapped by inner loop, then break
         if (swapped == 0){break;}
     }
 
@@ -183,6 +213,8 @@ alumno_t* join_alumnos(const alumno_t alumnoarr1[], const alumno_t alumnoarr2[],
 
 
 /* Function: classify_alumnos
+ *
+ * Prepares the data from the array of students to laters pass on the create_csv function.
  *
  * Arguments:
  *  - const alumno_t* alumno_t: Array with the students to classify depending on their marks
@@ -195,7 +227,7 @@ int classify_alumnos(const alumno_t alumnos[]) {
     int count_M = 0, count_S = 0, count_N = 0, count_A = 0, count_F = 0;
 
     int size = num_alumnos1 + num_alumnos2;
-    if (size == 0 || alumnos == NULL) {
+    if (size == 0) {
         create_csv(count_M, count_S, count_N, count_A, count_F);
         return 0;
     }
@@ -220,8 +252,11 @@ int classify_alumnos(const alumno_t alumnos[]) {
 
 /* Function: output_new_data
  *
+ * Creates the file passed as argument and populates it with the array of students.
+ *
  * Arguments:
- *  - const alumno_t* alumnos: Array with the students to output in the new file
+ *  - const alumno_t alumnos[]: Array with the students to output in the new file
+ *  - const char* filename: Name of the file where to output the new data
  *
  * Returns:
  *  - Will always return 0, in case of error the program will be terminated with -1
@@ -229,14 +264,14 @@ int classify_alumnos(const alumno_t alumnos[]) {
 int output_new_data(alumno_t alumnos[], const char* filename) {
 
     int new_file_fd;
-    if ((new_file_fd = creat(filename, 0644)) == -1) {
+    if ((new_file_fd = creat(filename, 0644)) < 0) {
         perror("Error creating new file");
         exit(-1);
     }
 
     int total_number_alumnos = num_alumnos1 + num_alumnos2;
     for (int i = 0; i < total_number_alumnos; i++) {
-        if (write(new_file_fd, &alumnos[i], sizeof(alumno_t)) == -1) {
+        if (write(new_file_fd, &alumnos[i], sizeof(alumno_t)) < 0) {
             perror("Error writing to file");
             exit(-1);
         }
@@ -245,3 +280,16 @@ int output_new_data(alumno_t alumnos[], const char* filename) {
     close(new_file_fd);
     return 0;
 }
+
+/*
+* ░▄▀▄▀▀▀▀▄▀▄░░░░░░░░░
+* ░█░░░░░░░░▀▄░░░░░░▄░
+* █░░▀░░▀░░░░░▀▄▄░░█░█
+* █░▄░█▀░▄░░░░░░░▀▀░░█
+* █░░▀▀▀▀░░░░░░░░░░░░█
+* █░░░░░░░░░░░░░░░░░░█
+* █░░░░░░░░░░░░░░░░░░█
+* ░█░░▄▄░░▄▄▄▄░░▄▄░░█░
+* ░█░▄▀█░▄▀░░█░▄▀█░▄▀░
+* ░░▀░░░▀░░░░░▀░░░▀░░░
+*/
