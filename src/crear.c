@@ -40,6 +40,11 @@ int main(int argc, char *argv[]) {
         }
         close(fd);
 
+	// As the default ACL may override the specified mask,
+	// we also change the permissions (even though is redundant),
+	// so we make sure the permissions are set correclty
+	chmod(name, permissions);
+
         return fd;
     }
 
