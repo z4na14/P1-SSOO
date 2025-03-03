@@ -29,9 +29,8 @@ int output_new_data(alumno_t alumnos[], const char* filename);
 int main(const int argc, const char *argv[]){
 
     // Check if the correct amount of parameters is passed to the program
-    if (argc != 4)
-    {
-        perror("Wrong number of arguments");
+    if (argc != 4) {
+        fprintf(stderr, "Wrong number of arguments");
 	return -1;
     }
 
@@ -42,7 +41,7 @@ int main(const int argc, const char *argv[]){
     fetch_alumno(argv[2], alumnoarr2, 1);
 
     if (num_alumnos1 + num_alumnos2 > MAX_ALUMNOS) {
-        perror("Students limit surpassed");
+        fprintf(stderr, "Students limit surpassed");
         return -1;
     }
 
@@ -93,7 +92,7 @@ int create_csv(const int countM, const int countS, const int countN, const int c
     int csv_file = creat("estadisticas.csv", 0644);
     if (write(csv_file, csv_str, strlen(csv_str)) == -1)
     {
-	    perror("Error writing to CSV");
+	    fprintf(stderr, "Error writing to CSV");
 	    exit(-1);
     }
     close(csv_file);
@@ -123,7 +122,7 @@ alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file) {
     // Open file on read only mode
     int file_fd;
     if ((file_fd = open(filename, O_RDONLY)) < 0) {
-        perror("Error opening file");
+        fprintf(stderr, "Error opening file");
         exit(-1);
     }
 
@@ -141,7 +140,7 @@ alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file) {
             alumnos[count_alumnos].nota < 0 || alumnos[count_alumnos].nota > 10 ||
             alumnos[count_alumnos].convocatoria < 0) {
 
-            perror("Invalid format inside input file");
+            fprintf(stderr, "Invalid format inside input file");
             exit(-1);
         }
 
@@ -155,7 +154,7 @@ alumno_t* fetch_alumno(const char* filename, alumno_t alumnos[], int num_file) {
     switch (num_file) {
         case 0: num_alumnos1 = count_alumnos; break;
         case 1: num_alumnos2 = count_alumnos; break;
-        default: perror("Wrong parameter of argument on fetch_alumno"); break;
+        default: fprintf(stderr, "Wrong parameter of argument on fetch_alumno"); break;
     }
 
     return alumnos;
@@ -265,14 +264,14 @@ int output_new_data(alumno_t alumnos[], const char* filename) {
 
     int new_file_fd;
     if ((new_file_fd = creat(filename, 0644)) < 0) {
-        perror("Error creating new file");
+        fprintf(stderr, "Error creating new file");
         exit(-1);
     }
 
     int total_number_alumnos = num_alumnos1 + num_alumnos2;
     for (int i = 0; i < total_number_alumnos; i++) {
         if (write(new_file_fd, &alumnos[i], sizeof(alumno_t)) < 0) {
-            perror("Error writing to file");
+            fprintf(stderr, "Error writing to file");
             exit(-1);
         }
     }
